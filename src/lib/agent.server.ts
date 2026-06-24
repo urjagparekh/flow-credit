@@ -49,8 +49,8 @@ export async function runAgent(
   const model = gateway(MODEL);
   const trace: TraceStep[] = [];
 
-  const record = (name: string, args: Record<string, unknown>, result: unknown) => {
-    trace.push({ tool: name, args, result });
+  const record = (name: string, args: unknown, result: unknown) => {
+    trace.push({ tool: name, args_json: JSON.stringify(args), result_json: JSON.stringify(result) });
   };
 
   const tools = {
