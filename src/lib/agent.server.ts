@@ -26,7 +26,7 @@ You investigate by calling tools. Each tool call has real cost (external APIs / 
 Tiered investigation policy:
 - TIER 1 (always): getLedger to confirm overage size. Optionally getAccount for plan/tenure.
 - TIER 2 (small clean overage + trusted signal): you may decide now in ~2 calls. Don't pull LTV/usage/margin for a tiny grant on a clean account.
-- TIER 3 (large overage OR borderline signal like a recent failed payment): call assessRisk subagent, then pull getLtv and getMargin before any grant. Add getUsage if pattern matters.
+- TIER 3 (large overage OR borderline signal like a recent failed payment): pull getLtv and getMargin before any grant. Add getUsage if pattern matters.
 - HARD: a grant must always fit remaining continuity cap and max_single_grant. If getMargin shows the grant breaks margin, prefer COMPLETE_ONLY_LIMIT_FUTURE or OFFER_PURCHASE.
 
 Decisions you may choose:
@@ -37,7 +37,7 @@ Decisions you may choose:
 
 When you have enough evidence, call submitDecision with the final JSON. Do NOT keep investigating after you can answer. The user_message must be warm, concise, transparent about next-bill impact.`;
 
-const RISK_PROMPT = `You are the RiskAssessor subagent. Given a user's payment_history and risk_signals JSON, return a risk_level (low|medium|high) and a one-sentence reasoning. Be strict about recent failed payments and refund counts; ignore stale issues.`;
+// const RISK_PROMPT = `You are the RiskAssessor subagent. Given a user's payment_history and risk_signals JSON, return a risk_level (low|medium|high) and a one-sentence reasoning. Be strict about recent failed payments and refund counts; ignore stale issues.`;
 
 export async function runAgent(
   userId: string,
