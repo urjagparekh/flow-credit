@@ -181,32 +181,17 @@ export const decideForUser = createServerFn({ method: "POST" })
     }
 
     const remainingCap = l.continuity_cap - l.continuity_used_this_cycle;
-    const capConstrained =
-      overage > remainingCap || overage > policy.max_single_grant_credits;
-
-    const ctx = {
-      account: a,
-      ledger: l,
-      payment: p,
-      risk: r,
-      ltv,
-      usage,
-      job,
-      policy,
-      overage,
-      remainingCap,
-      capConstrained,
-    };
 
     try {
-      const raw = await callLLM(ctx);
+      const { runAgent } = await import("./agent.server");
+      const { decision: raw, trace } = await runAgent(userId, { overage, remainingCap });
       const d = validate(raw, { overage, remainingCap, policy });
       if (isTeam) d.notify_admin = true;
       d.path = "reasoning";
+      d.trace = trace;
       return d;
     } catch (err) {
       const message = err instanceof Error ? err.message : String(err);
-      // Surface a safe fallback rather than 500
       return mk(
         "OFFER_PURCHASE",
         0,
