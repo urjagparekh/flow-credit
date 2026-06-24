@@ -186,7 +186,7 @@ export async function runAgent(
       `Agent stopped without submitDecision. Last text: ${result.text?.slice(0, 200) ?? "(none)"}`,
     );
   }
-  const raw = submit.args as Record<string, unknown>;
+  const raw = JSON.parse(submit.args_json) as Record<string, unknown>;
   const decision = DecisionSchema.parse({
     ...raw,
     next_bill_delta_usd: 0,
@@ -199,6 +199,7 @@ export async function runAgent(
       consent: false,
     },
     path: "reasoning",
+    trace,
   });
   return { decision, trace };
 }
