@@ -1,0 +1,64 @@
+{
+  "policy": {
+    "continuity_threshold_credits": 50,
+    "max_single_grant_credits": 150,
+    "credit_rate_usd": 0.10,
+    "platform_cost_per_credit_usd": 0.04,
+    "silent_grant_threshold_usd": 5,
+    "fraud_score_block_threshold": 70,
+    "failed_payments_block_threshold": 2,
+    "credit_packs": [
+      { "credits": 100, "price_usd": 10 },
+      { "credits": 500, "price_usd": 45 }
+    ]
+  },
+  "accounts": [
+    { "user_id": "u1", "name": "Maya",        "plan": "Pro",      "subscription_status": "active",   "tenure_months": 26, "overage_consent": true,  "account_type": "individual" },
+    { "user_id": "u2", "name": "Devin",       "plan": "Standard", "subscription_status": "active",   "tenure_months": 0,  "overage_consent": false, "account_type": "individual" },
+    { "user_id": "u3", "name": "ghostpix",    "plan": "Standard", "subscription_status": "past_due", "tenure_months": 4,  "overage_consent": false, "account_type": "individual" },
+    { "user_id": "u4", "name": "Alex",        "plan": "Pro",      "subscription_status": "active",   "tenure_months": 14, "overage_consent": true,  "account_type": "individual" },
+    { "user_id": "u5", "name": "Studio Nine", "plan": "Pro",      "subscription_status": "active",   "tenure_months": 20, "overage_consent": true,  "account_type": "team", "admin_contact": "admin@studionine.co" }
+  ],
+  "credit_ledger": [
+    { "user_id": "u1", "balance": 40, "monthly_allotment": 2250, "continuity_used_this_cycle": 0, "continuity_cap": 200 },
+    { "user_id": "u2", "balance": 20, "monthly_allotment": 625,  "continuity_used_this_cycle": 0, "continuity_cap": 50  },
+    { "user_id": "u3", "balance": 5,  "monthly_allotment": 625,  "continuity_used_this_cycle": 0, "continuity_cap": 50  },
+    { "user_id": "u4", "balance": 30, "monthly_allotment": 2250, "continuity_used_this_cycle": 0, "continuity_cap": 200 },
+    { "user_id": "u5", "balance": 25, "monthly_allotment": 5000, "continuity_used_this_cycle": 0, "continuity_cap": 400 }
+  ],
+  "payment_history": [
+    { "user_id": "u1", "on_time_payments": 26, "failed_payments_last_90d": 0, "last_status": "success" },
+    { "user_id": "u2", "on_time_payments": 1,  "failed_payments_last_90d": 0, "last_status": "success" },
+    { "user_id": "u3", "on_time_payments": 2,  "failed_payments_last_90d": 3, "last_status": "failed"  },
+    { "user_id": "u4", "on_time_payments": 13, "failed_payments_last_90d": 1, "last_status": "success" },
+    { "user_id": "u5", "on_time_payments": 19, "failed_payments_last_90d": 1, "last_status": "success" }
+  ],
+  "risk_signals": [
+    { "user_id": "u1", "refund_count": 0, "abuse_flags": [],                        "fraud_score": 5  },
+    { "user_id": "u2", "refund_count": 0, "abuse_flags": [],                        "fraud_score": 30 },
+    { "user_id": "u3", "refund_count": 4, "abuse_flags": ["chargebacks"],           "fraud_score": 78 },
+    { "user_id": "u4", "refund_count": 1, "abuse_flags": [],                        "fraud_score": 35 },
+    { "user_id": "u5", "refund_count": 1, "abuse_flags": ["unusual_volume_spike"],  "fraud_score": 72 }
+  ],
+  "ltv": [
+    { "user_id": "u1", "ltv_usd": 4800,  "tier": "high"     },
+    { "user_id": "u2", "ltv_usd": 0,     "tier": "new"      },
+    { "user_id": "u3", "ltv_usd": -120,  "tier": "negative" },
+    { "user_id": "u4", "ltv_usd": 3600,  "tier": "high"     },
+    { "user_id": "u5", "ltv_usd": 12000, "tier": "high"     }
+  ],
+  "usage_history": [
+    { "user_id": "u1", "avg_monthly_generations": 480,  "times_hit_limit_90d": 0, "pattern": "consistent heavy user" },
+    { "user_id": "u2", "avg_monthly_generations": 8,    "times_hit_limit_90d": 0, "pattern": "brand new account" },
+    { "user_id": "u3", "avg_monthly_generations": 60,   "times_hit_limit_90d": 5, "pattern": "bursty, repeated limit hits" },
+    { "user_id": "u4", "avg_monthly_generations": 310,  "times_hit_limit_90d": 1, "pattern": "steady, first large overage" },
+    { "user_id": "u5", "avg_monthly_generations": 1400, "times_hit_limit_90d": 2, "pattern": "team account, high volume" }
+  ],
+  "pending_jobs": [
+    { "user_id": "u1", "job_type": "4K video (5s)",                  "credits_required": 75  },
+    { "user_id": "u2", "job_type": "batch: 6 videos",                "credits_required": 120 },
+    { "user_id": "u3", "job_type": "video (5s)",                     "credits_required": 60  },
+    { "user_id": "u4", "job_type": "4K video (15s), variable cost",  "credits_required": 110 },
+    { "user_id": "u5", "job_type": "batch: 10 videos",               "credits_required": 90  }
+  ]
+}
