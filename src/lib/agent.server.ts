@@ -119,32 +119,33 @@ export async function runAgent(
         return out;
       },
     }),
-    assessRisk: tool({
-      description:
-        "Subagent: independent risk assessment over payment + risk signals. Returns {risk_level, reasoning}.",
-      inputSchema: z.object({ user_id: z.string() }),
-      execute: async ({ user_id }) => {
-        const payment = row(db.payment_history, user_id);
-        const risk = row(db.risk_signals, user_id);
-        const sub = await generateText({
-          model,
-          temperature: 0.1,
-          system: RISK_PROMPT,
-          prompt: `Assess risk. Return ONLY JSON {"risk_level":"low|medium|high","reasoning":"..."}.\n${JSON.stringify({ payment, risk })}`,
-        });
-        const cleaned = sub.text.replace(/```json|```/g, "").trim();
-        const s = cleaned.indexOf("{");
-        const e = cleaned.lastIndexOf("}");
-        let parsed: { risk_level: string; reasoning: string };
-        try {
-          parsed = JSON.parse(s >= 0 ? cleaned.slice(s, e + 1) : cleaned);
-        } catch {
-          parsed = { risk_level: "medium", reasoning: "Subagent parse fallback." };
-        }
-        record("assessRisk", { user_id }, parsed);
-        return parsed;
-      },
-    }),
+    // assessRisk subagent — disabled for now, keep for later.
+    // assessRisk: tool({
+    //   description:
+    //     "Subagent: independent risk assessment over payment + risk signals. Returns {risk_level, reasoning}.",
+    //   inputSchema: z.object({ user_id: z.string() }),
+    //   execute: async ({ user_id }) => {
+    //     const payment = row(db.payment_history, user_id);
+    //     const risk = row(db.risk_signals, user_id);
+    //     const sub = await generateText({
+    //       model,
+    //       temperature: 0.1,
+    //       system: RISK_PROMPT,
+    //       prompt: `Assess risk. Return ONLY JSON {"risk_level":"low|medium|high","reasoning":"..."}.\n${JSON.stringify({ payment, risk })}`,
+    //     });
+    //     const cleaned = sub.text.replace(/```json|```/g, "").trim();
+    //     const s = cleaned.indexOf("{");
+    //     const e = cleaned.lastIndexOf("}");
+    //     let parsed: { risk_level: string; reasoning: string };
+    //     try {
+    //       parsed = JSON.parse(s >= 0 ? cleaned.slice(s, e + 1) : cleaned);
+    //     } catch {
+    //       parsed = { risk_level: "medium", reasoning: "Subagent parse fallback." };
+    //     }
+    //     record("assessRisk", { user_id }, parsed);
+    //     return parsed;
+    //   },
+    // }),
     submitDecision: tool({
       description:
         "Submit the final decision. Call this exactly once when you have enough evidence. The loop stops after this.",
