@@ -5,7 +5,7 @@ import { createLovableAiGatewayProvider } from "./ai-gateway.server";
 import { DecisionSchema, type Decision, type SeedData } from "./decision-types";
 
 const db = seed as unknown as SeedData;
-const MODEL = "google/gemini-3-flash-preview";
+const MODEL = "google/gemini-3.5-flash";
 
 export type TraceStep = {
   tool: string;
