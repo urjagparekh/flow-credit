@@ -141,7 +141,11 @@ export function DecisionCard({
             onClick={() => setDismissed(true)}
             className="hover:bg-background/40"
           >
-            Not now
+            {decision.decision === "AUTO_GRANT"
+              ? "Dismiss"
+              : needsConfirm
+                ? "Cancel"
+                : "Not now"}
           </Button>
         </div>
       )}
