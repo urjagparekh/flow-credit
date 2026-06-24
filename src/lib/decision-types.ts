@@ -47,8 +47,8 @@ export const DecisionSchema = z.object({
     .array(
       z.object({
         tool: z.string(),
-        args: z.record(z.string(), z.unknown()).default({}),
-        result: z.unknown(),
+        args_json: z.string().default("{}"),
+        result_json: z.string().default("null"),
       }),
     )
     .default([]),
