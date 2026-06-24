@@ -6,6 +6,35 @@ Built on **TanStack Start** (React 19 + Vite 7) with the **AI SDK** + **Lovable 
 
 ---
 
+## The Problem
+
+Metered AI tools cut you off the moment you run out of credits — often mid-generation, when you're deepest in the work.
+
+A hard stop treats your most loyal customer exactly like a fraudster.
+
+That's the worst moment to be blunt: high intent, high emotion → failed jobs, tickets, churn.
+
+The fix: **decide per user** — let some continue, warn some, sell to some, block some — instead of one rule for all.
+
+## Why It Matters
+
+Hits retention, trust, and margin at the same time, at a high-intent moment.
+
+This is about **judgment**, not a billion-dollar line item. The leverage is in getting the decision right when the user is most engaged.
+
+## What's Mocked vs. Real
+
+| Mocked (illustrative data) | Real (production logic) |
+|---|---|
+| All user data, LTV, credit numbers | The gates, the agent's reasoning, the decision logic |
+
+**Cut on purpose** to keep scope tight:
+- Live exhaustion prediction
+- Separate risk subagent
+- Full team-admin UI
+
+---
+
 ## Agent Architecture
 
 The decision pipeline has two stages: a **deterministic gate layer** (cheap, rule-based, handles the clear-cut cases) and a **reasoning agent** (LLM with tools, handles the grey-zone judgment calls).
