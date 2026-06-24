@@ -7,16 +7,16 @@ import { DecisionSchema, type Decision, type SeedData } from "./decision-types";
 const db = seed as unknown as SeedData;
 const MODEL = "google/gemini-3-flash-preview";
 
+export type TraceStep = {
+  tool: string;
+  args_json: string;
+  result_json: string;
+};
+
 const row = <T extends { user_id: string }>(arr: T[], id: string): T => {
   const r = arr.find((x) => x.user_id === id);
   if (!r) throw new Error(`No row for user ${id}`);
   return r;
-};
-
-export type TraceStep = {
-  tool: string;
-  args: Record<string, unknown>;
-  result: unknown;
 };
 
 const MAIN_PROMPT = `You are the Credit Continuity Agent for a metered generative-AI platform. A user is about to run a generation that costs more credits than they have. Deterministic safety gates (fraud, abuse, no-consent large overage, hard caps) have ALREADY run and cleared this case — you only see grey-zone judgment calls.
