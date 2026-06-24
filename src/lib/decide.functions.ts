@@ -124,32 +124,6 @@ function validate(
   return d;
 }
 
-async function callLLM(context: Record<string, unknown>): Promise<Decision> {
-  const key = process.env.LOVABLE_API_KEY;
-  if (!key) throw new Error("Missing LOVABLE_API_KEY");
-
-  const { createLovableAiGatewayProvider } = await import("./ai-gateway.server");
-  const { generateText } = await import("ai");
-
-  const gateway = createLovableAiGatewayProvider(key);
-  const model = gateway("google/gemini-3-flash-preview");
-
-  const { text } = await generateText({
-    model,
-    temperature: 0.2,
-    system: SYSTEM_PROMPT,
-    prompt: `Decide on this case. Return ONLY JSON.\n\n${JSON.stringify(context)}`,
-  });
-
-  const cleaned = text.replace(/```json|```/g, "").trim();
-  const start = cleaned.indexOf("{");
-  const end = cleaned.lastIndexOf("}");
-  const json = start >= 0 && end >= 0 ? cleaned.slice(start, end + 1) : cleaned;
-  const parsed = JSON.parse(json);
-  const d = DecisionSchema.parse(parsed);
-  d.path = "reasoning";
-  return d;
-}
 
 export const decideForUser = createServerFn({ method: "POST" })
   .inputValidator((input: unknown) => z.object({ userId: z.string() }).parse(input))
