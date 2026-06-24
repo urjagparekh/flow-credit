@@ -1,0 +1,157 @@
+# Credit Continuity Agent
+
+A demoable prototype of an **agentic decision system** for a metered generative-AI platform. When a user tries to run a generation that costs more credits than they have, the system decides — in real time — whether to front credits, warn, offer a purchase, block, or escalate.
+
+Built on **TanStack Start** (React 19 + Vite 7) with the **AI SDK** + **Lovable AI Gateway** (`google/gemini-3.5-flash`).
+
+---
+
+## Agent Architecture
+
+The decision pipeline has two stages: a **deterministic gate layer** (cheap, rule-based, handles the clear-cut cases) and a **reasoning agent** (LLM with tools, handles the grey-zone judgment calls).
+
+```text
+                  ┌─────────────────────────┐
+   user_id ─────▶ │  decideForUser (RPC)    │  src/lib/decide.functions.ts
+                  │  TanStack server fn     │
+                  └───────────┬─────────────┘
+                              │ loads seed rows for user
+                              ▼
+                  ┌─────────────────────────┐
+                  │  Deterministic Gates    │
+                  │  • fraud_score          │
+                  │  • failed_payments      │
+                  │  • abuse_flags          │
+                  │  • consent + overage    │
+                  └───────┬────────┬────────┘
+              clear-cut   │        │   grey-zone
+            BLOCK/ESCALATE│        │  (passes through)
+            OFFER_PURCHASE│        ▼
+                          │   ┌─────────────────────────────┐
+                          │   │  runAgent (Orchestrator)    │  src/lib/agent.server.ts
+                          │   │  AI SDK generateText loop   │
+                          │   │  model: gemini-3.5-flash    │
+                          │   │  stopWhen: stepCountIs(8)   │
+                          │   │           hasToolCall(...)  │
+                          │   └──────────────┬──────────────┘
+                          │                  │ tiered investigation
+                          │                  ▼
+                          │   ┌─────────────────────────────┐
+                          │   │  Tools (Zod-validated)      │
+                          │   │   getAccount                │
+                          │   │   getLedger                 │
+                          │   │   getPayments               │
+                          │   │   getLtv                    │
+                          │   │   getUsage                  │
+                          │   │   getMargin                 │
+                          │   │   submitDecision  ← stops   │
+                          │   └──────────────┬──────────────┘
+                          │                  │ trace[] of tool calls
+                          │                  ▼
+                          │   ┌─────────────────────────────┐
+                          │   │  validate()                 │
+                          │   │  • clamp to continuity_cap  │
+                          │   │  • clamp to max_single_grant│
+                          │   │  • compute next_bill_delta  │
+                          │   │  • requires_confirmation?   │
+                          │   └──────────────┬──────────────┘
+                          │                  │
+                          └────────┬─────────┘
+                                   ▼
+                       ┌───────────────────────┐
+                       │  Decision (Zod)       │
+                       │  + trace[] for UI     │
+                       └───────────────────────┘
+```
+
+### Stage 1 — Deterministic Gates (`decide.functions.ts`)
+
+Cheap, auditable rules that run before the LLM is ever called:
+
+| Gate | Condition | Outcome |
+|---|---|---|
+| Fraud / abuse | `fraud_score ≥ 70`, `failed_payments ≥ 2`, or abuse flag present | `BLOCK` (or `ESCALATE` if high-LTV / team) |
+| Consent | `overage_consent=false` AND overage > threshold | `OFFER_PURCHASE` |
+| No overage | `balance ≥ credits_required` | `AUTO_GRANT` (0 credits) |
+
+Everything else falls through to the reasoning agent.
+
+### Stage 2 — Reasoning Agent (`agent.server.ts`)
+
+A single-loop AI SDK agent (`generateText` + tools) acting as the **orchestrator**. It is told the case has already cleared safety gates and must choose between `AUTO_GRANT`, `WARN_AND_ALLOW`, `COMPLETE_ONLY_LIMIT_FUTURE`, or `OFFER_PURCHASE`.
+
+**Tiered investigation policy** baked into the system prompt — the agent only pays for the tool calls it needs:
+
+- **Tier 1** — always pull `getLedger` (confirm overage). Optionally `getAccount`.
+- **Tier 2** — small clean overage, trusted signal → decide in ~2 calls.
+- **Tier 3** — large overage or borderline signals → pull `getLtv` + `getMargin`, and `getUsage` if pattern matters.
+
+**Loop control**: stops on `stepCountIs(8)` **or** `hasToolCall("submitDecision")`.
+
+### Tools
+
+All tools have narrow Zod input schemas and compact, serializable outputs. Every call is appended to a `trace[]` rendered in the UI for transparency.
+
+| Tool | Purpose |
+|---|---|
+| `getAccount` | Plan, tenure, account type, consent |
+| `getLedger` | Balance, monthly allotment, continuity used/cap, enriched with overage |
+| `getPayments` | On-time count, failed-in-90d, last status |
+| `getLtv` | LTV tier + USD — pull for non-trivial grants |
+| `getUsage` | Avg monthly generations, limit-hits, pattern |
+| `getMargin` | Computes margin for a proposed grant (`billed − platform_cost`) |
+| `submitDecision` | Terminal tool — emits the final structured `Decision` and stops the loop |
+
+### Validation & Clamping
+
+After the agent submits, `validate()` enforces hard policy invariants the LLM cannot violate:
+
+- `continuity_credits_granted ≤ min(overage, remaining_cap, max_single_grant)`
+- If clamping would underfund the job → downgrade to `OFFER_PURCHASE`
+- Compute `next_bill_delta_usd = credits × credit_rate_usd`
+- Set `requires_confirmation` if delta > `silent_grant_threshold_usd`
+
+### Decision Shape (Zod-validated)
+
+```ts
+{
+  decision: "AUTO_GRANT" | "WARN_AND_ALLOW" | "COMPLETE_ONLY_LIMIT_FUTURE"
+          | "OFFER_PURCHASE" | "BLOCK" | "ESCALATE",
+  continuity_credits_granted: number,
+  next_bill_delta_usd: number,
+  confidence: "high" | "medium" | "low",
+  rationale: string,
+  rejected_alternatives: { action: string, why_not: string }[],
+  user_message: string,                 // shown directly to the creator
+  limit_future: boolean,
+  notify_admin: boolean,
+  requires_confirmation: boolean,
+  path: "gate" | "reasoning",
+  trace: { tool, args_json, result_json }[],
+}
+```
+
+---
+
+## File Map
+
+| File | Role |
+|---|---|
+| `src/lib/decide.functions.ts` | Server fn entry point + deterministic gates + validate/clamp |
+| `src/lib/agent.server.ts` | Orchestrator agent, tools, AI SDK loop |
+| `src/lib/ai-gateway.server.ts` | Lovable AI Gateway provider |
+| `src/lib/decision-types.ts` | Zod schemas + seed types |
+| `src/data/seed.json` | Policy + 8 demo users (accounts, ledger, payments, risk, LTV, usage, jobs) |
+| `src/routes/index.tsx` | Single-page demo UI |
+| `src/components/credit-agent/*` | ScenarioPicker, CreatorView, ReasoningPanel, DecisionCard, DataTablesTab, PolicyPanel |
+
+---
+
+## Running
+
+```bash
+bun install
+bun dev
+```
+
+Requires `LOVABLE_API_KEY` in the environment (auto-provisioned by Lovable Cloud).
