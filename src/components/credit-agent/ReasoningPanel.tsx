@@ -58,26 +58,42 @@ export function ReasoningPanel({ decision }: { userId: string; decision: Decisio
         </div>
       </div>
 
-      {/* Fetch steps */}
+      {/* Tool-call trace */}
       <div className="mt-5">
-        <div className="text-xs uppercase tracking-wider text-muted-foreground">
-          Data fetched
+        <div className="flex items-center justify-between">
+          <div className="text-xs uppercase tracking-wider text-muted-foreground">
+            Agent tool trace
+          </div>
+          <div className="text-xs text-muted-foreground">
+            {trace.length} call{trace.length === 1 ? "" : "s"}
+          </div>
         </div>
-        <ul className="mt-2 space-y-1.5">
-          {steps.map((s) => (
+        <ol className="mt-2 space-y-1.5">
+          {trace.length === 0 && (
+            <li className="rounded-md bg-background px-3 py-1.5 text-sm text-muted-foreground">
+              No tool calls (deterministic gate).
+            </li>
+          )}
+          {trace.map((s, i) => (
             <li
-              key={s.label}
-              className="flex items-center justify-between rounded-md bg-background px-3 py-1.5 text-sm"
+              key={i}
+              className="flex items-start gap-2 rounded-md bg-background px-3 py-1.5 text-sm"
             >
-              <span className="flex items-center gap-2 font-mono">
-                <Check className="size-3.5 text-emerald-600" />
-                {s.label}
+              <span className="mt-0.5 inline-flex size-5 shrink-0 items-center justify-center rounded-full bg-muted text-[10px] font-semibold">
+                {i + 1}
               </span>
-              <span className="text-muted-foreground">{s.value}</span>
+              <ChevronRight className="mt-1 size-3.5 shrink-0 text-muted-foreground" />
+              <div className="min-w-0 flex-1">
+                <div className="font-mono text-xs font-medium">{s.tool}</div>
+                <div className="truncate text-xs text-muted-foreground">
+                  {summarize(s.tool, s.result_json)}
+                </div>
+              </div>
             </li>
           ))}
-        </ul>
+        </ol>
       </div>
+
 
       {/* Rationale */}
       {decision.rationale && (
