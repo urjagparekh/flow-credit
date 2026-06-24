@@ -15,25 +15,26 @@ A demoable single-page prototype. No Supabase, no DB, no auth. JSON seed + one s
 ```
 src/data/seed.json                  §4 policy + §5 tables (verbatim)
 src/lib/ai-gateway.server.ts        Lovable AI Gateway provider
-src/lib/decision-types.ts           Decision schema (Zod) + types
-src/lib/decide.functions.ts         createServerFn: gates → LLM → validate/clamp
-src/routes/index.tsx                Single-page demo (replaces placeholder)
+src/lib/decision-types.ts           Decision schema (Zod) + trace + types
+src/lib/agent.server.ts             Tool-calling agent loop + RiskAssessor subagent
+src/lib/decide.functions.ts         createServerFn: gates → agent loop → validate/clamp
+src/routes/index.tsx                Single-page demo
 src/components/credit-agent/
   ScenarioPicker.tsx                Maya / Devin / ghostpix / Alex / Studio Nine
   CreatorView.tsx                   Plan badge, CreditMeter, PendingJob, Generate
-  DecisionCard.tsx                  user_message + decision CTA + confirm + "Not now"
-  ReasoningPanel.tsx                Fetch steps, badge, rationale, rejected alts, NextBillPreview
+  DecisionCard.tsx                  user_message + decision CTA + confirm + Dismiss/Cancel
+  ReasoningPanel.tsx                Real tool-call trace, rationale, rejected alts, NextBillPreview
   DataTablesTab.tsx                 Seed tables with selected row highlighted
   PolicyPanel.tsx                   Policy values
 ```
 
-## decide() pipeline (§7, §9 verbatim)
+## Agentic pipeline
 
-1. **Gates (pure code):**
-   - fraud_score ≥ 70 OR failed_payments_90d ≥ 2 OR abuse_flags → BLOCK; if LTV=high or team → ESCALATE + notify_admin
-   - no consent + overage > continuity_threshold → OFFER_PURCHASE
-2. **LLM (grey zone only):** §8 system prompt verbatim; sends account/ledger/payment/risk/ltv/usage/job/policy + computed overage, remainingCap, capConstrained
-3. **Validate/clamp:** maxGrant = min(overage, remainingCap, max_single_grant); downgrade to OFFER_PURCHASE if can't fully cover; compute next_bill_delta_usd; requires_confirmation when delta > $5; force notify_admin on team accounts
+1. **Gates (pure code, deterministic safety envelope):** fraud / failed_payments / abuse → BLOCK or ESCALATE; no-consent + overage > threshold → OFFER_PURCHASE. Short-circuits before any model call.
+2. **Agent loop (grey zone only):** AI SDK `generateText` with tools — `getAccount`, `getLedger`, `getPayments`, `getLtv`, `getUsage`, `getMargin`, `assessRisk` (subagent), `submitDecision` (terminal). `stopWhen: [stepCountIs(8), hasToolCall("submitDecision")]`. Model investigates by tiers — trivial cases finish in ~2 calls, borderline cases pull LTV + margin + risk subagent.
+3. **RiskAssessor subagent:** its own small `generateText` call over payment + risk signals; returns `{risk_level, reasoning}` consumed by the main agent.
+4. **Validate/clamp:** maxGrant = min(overage, remainingCap, max_single_grant); downgrade to OFFER_PURCHASE if can't fully cover; compute next_bill_delta_usd; requires_confirmation when delta > $5; force notify_admin on team accounts.
+5. **Trace** of every tool call returned with the decision and rendered in `ReasoningPanel`.
 
 ## UI (§10)
 

@@ -1,42 +1,39 @@
 import { Badge } from "@/components/ui/badge";
-import seed from "@/data/seed.json";
-import type { Decision, SeedData } from "@/lib/decision-types";
+import type { Decision } from "@/lib/decision-types";
 import { cn } from "@/lib/utils";
-import { Check } from "lucide-react";
+import { ChevronRight } from "lucide-react";
 
-const db = seed as unknown as SeedData;
-
-function riskLevel(score: number, failed: number, abuse: string[]): string {
-  if (score >= 70 || failed >= 2 || abuse.length > 0) return "high";
-  if (score >= 30 || failed >= 1) return "medium";
-  return "low";
+function summarize(toolName: string, resultJson: string): string {
+  try {
+    const r = JSON.parse(resultJson);
+    if (r == null) return "—";
+    switch (toolName) {
+      case "getAccount":
+        return `${r.plan} · ${r.tenure_months}mo · ${r.account_type}`;
+      case "getLedger":
+        return `bal ${r.balance}/${r.monthly_allotment} · overage ${r.overage} · cap left ${r.remaining_continuity_cap}`;
+      case "getPayments":
+        return `${r.failed_payments_last_90d} failed 90d · ${r.last_status}`;
+      case "getLtv":
+        return `${r.tier} · $${(r.ltv_usd ?? 0).toLocaleString()}`;
+      case "getUsage":
+        return `${r.pattern} · ${r.times_hit_limit_90d}× limit/90d`;
+      case "getMargin":
+        return `bill $${r.billed_usd} · cost $${r.cost_usd} · margin $${r.margin_usd}`;
+      case "assessRisk":
+        return `${r.risk_level} — ${r.reasoning}`;
+      case "submitDecision":
+        return "final answer";
+      default:
+        return JSON.stringify(r).slice(0, 80);
+    }
+  } catch {
+    return resultJson.slice(0, 60);
+  }
 }
 
-export function ReasoningPanel({
-  userId,
-  decision,
-}: {
-  userId: string;
-  decision: Decision;
-}) {
-  const a = db.accounts.find((x) => x.user_id === userId)!;
-  const l = db.credit_ledger.find((x) => x.user_id === userId)!;
-  const p = db.payment_history.find((x) => x.user_id === userId)!;
-  const r = db.risk_signals.find((x) => x.user_id === userId)!;
-  const ltv = db.ltv.find((x) => x.user_id === userId)!;
-
-  const steps = [
-    { label: "getAccount", value: `${a.plan} · ${a.tenure_months}mo` },
-    { label: "getLedger", value: `${l.balance} / ${l.monthly_allotment}` },
-    { label: "getPayments", value: `${p.failed_payments_last_90d} failed 90d` },
-    {
-      label: "getRisk",
-      value: `${riskLevel(r.fraud_score, p.failed_payments_last_90d, r.abuse_flags)} · score ${r.fraud_score}`,
-    },
-    { label: "getLtv", value: `${ltv.tier} · $${ltv.ltv_usd.toLocaleString()}` },
-    { label: "getUsage", value: "fetched" },
-  ];
-
+export function ReasoningPanel({ decision }: { userId: string; decision: Decision }) {
+  const trace = decision.trace ?? [];
   const billed = decision.continuity_credits_granted * 0.1;
   const cost = decision.continuity_credits_granted * 0.04;
 
@@ -61,26 +58,42 @@ export function ReasoningPanel({
         </div>
       </div>
 
-      {/* Fetch steps */}
+      {/* Tool-call trace */}
       <div className="mt-5">
-        <div className="text-xs uppercase tracking-wider text-muted-foreground">
-          Data fetched
+        <div className="flex items-center justify-between">
+          <div className="text-xs uppercase tracking-wider text-muted-foreground">
+            Agent tool trace
+          </div>
+          <div className="text-xs text-muted-foreground">
+            {trace.length} call{trace.length === 1 ? "" : "s"}
+          </div>
         </div>
-        <ul className="mt-2 space-y-1.5">
-          {steps.map((s) => (
+        <ol className="mt-2 space-y-1.5">
+          {trace.length === 0 && (
+            <li className="rounded-md bg-background px-3 py-1.5 text-sm text-muted-foreground">
+              No tool calls (deterministic gate).
+            </li>
+          )}
+          {trace.map((s, i) => (
             <li
-              key={s.label}
-              className="flex items-center justify-between rounded-md bg-background px-3 py-1.5 text-sm"
+              key={i}
+              className="flex items-start gap-2 rounded-md bg-background px-3 py-1.5 text-sm"
             >
-              <span className="flex items-center gap-2 font-mono">
-                <Check className="size-3.5 text-emerald-600" />
-                {s.label}
+              <span className="mt-0.5 inline-flex size-5 shrink-0 items-center justify-center rounded-full bg-muted text-[10px] font-semibold">
+                {i + 1}
               </span>
-              <span className="text-muted-foreground">{s.value}</span>
+              <ChevronRight className="mt-1 size-3.5 shrink-0 text-muted-foreground" />
+              <div className="min-w-0 flex-1">
+                <div className="font-mono text-xs font-medium">{s.tool}</div>
+                <div className="truncate text-xs text-muted-foreground">
+                  {summarize(s.tool, s.result_json)}
+                </div>
+              </div>
             </li>
           ))}
-        </ul>
+        </ol>
       </div>
+
 
       {/* Rationale */}
       {decision.rationale && (

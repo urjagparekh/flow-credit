@@ -43,6 +43,15 @@ export const DecisionSchema = z.object({
     }),
   // gate-only / system meta
   path: z.enum(["gate", "reasoning"]).optional(),
+  trace: z
+    .array(
+      z.object({
+        tool: z.string(),
+        args_json: z.string().default("{}"),
+        result_json: z.string().default("null"),
+      }),
+    )
+    .default([]),
 });
 
 export type Decision = z.infer<typeof DecisionSchema>;
