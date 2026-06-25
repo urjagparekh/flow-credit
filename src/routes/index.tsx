@@ -18,7 +18,7 @@ export const Route = createFileRoute("/")({
       {
         name: "description",
         content:
-          "An AI agent for Runway commerce platform, that reasons through customer data and margins to identify grey zone users and provide per-user judgment instead of a hard credit stop for a better customer experience.",
+          "An AI agent for Runway commerce platform, that reasons through customer data and margins to identify grey zone users and provide per-user judgment instead of a hard credit stop on credit exhaustion",
       },
     ],
   }),
@@ -76,7 +76,7 @@ function Index() {
             </a>{" "}
             commerce platform, that reasons through customer data and margins to
             identify grey zone users and provide per-user judgment instead of a
-            hard credit stop — explained.
+            hard credit stop on credit exhaustion.
           </p>
         </header>
 
