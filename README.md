@@ -127,12 +127,19 @@ A single-loop AI SDK agent (`generateText` + tools) acting as the **orchestrator
 - **`COMPLETE_ONLY_LIMIT_FUTURE`** — front credits for **this** job, require confirm/payment before the next one.
 - **`OFFER_PURCHASE`** — no fronting; show a credit-pack purchase.
 
-**Tiered investigation policy** baked into the system prompt — every tool call is framed as having real cost (external APIs / expensive queries), so the agent investigates proportionally to the stakes:
+**Routing definitions** (these decide how much to investigate, not which action to pick):
+
+- **Small overage** = at or below 50 credits; **large overage** = above 50 credits.
+- **Trusted / clean** = subscription active AND 0 failed payments in the last 90 days AND tenure >= 6 months.
+
+**Tiered investigation policy** — every tool call is framed as having real cost (external APIs / expensive queries), so the agent investigates proportionally to the stakes:
 
 - **Tier 1 (always)** — pull `getLedger` to confirm overage size. Optionally `getAccount` for plan / tenure.
-- **Tier 2 (small clean overage + trusted signal)** — decide in ~2 calls. Do **not** pull `getLtv` / `getUsage` / `getMargin` for a tiny grant on a clean account.
-- **Tier 3 (large overage OR borderline signal like a recent failed payment)** — pull `getLtv` and `getMargin` before any grant. Add `getUsage` if the usage pattern matters.
+- **Tier 2 (small overage + trusted)** — decide in ~2 calls. Do **not** pull `getLtv` / `getUsage` / `getMargin` for a tiny grant on a clean account.
+- **Tier 3 (large overage OR borderline signal like a recent failed payment OR not trusted)** — pull `getLtv` and `getMargin` before any grant. Add `getUsage` if the usage pattern matters.
 - **Hard rule** — a grant must always fit remaining continuity cap and `max_single_grant`. If `getMargin` shows the grant breaks margin, prefer `COMPLETE_ONLY_LIMIT_FUTURE` or `OFFER_PURCHASE`.
+
+Choosing the action is a **judgment call**, not a formulaic lookup. Within the limits above, the agent weighs LTV, exposure, margin, and usage pattern against each other for this specific case, picks the action that best balances keeping a valuable user unblocked against protecting the platform, and uses `rejected_alternatives` to explain why the runner-up was not chosen.
 
 **`user_message` style** — warm, concise, transparent about next-bill impact.
 
