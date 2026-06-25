@@ -1,4 +1,4 @@
-# Credit Continuity Agent
+# Flow Continuity Agent
 
 A demoable prototype of an **agentic decision system** for a metered generative-AI platform. When a user tries to run a generation that costs more credits than they have, the system decides — in real time — whether to front credits, warn, offer a purchase, block, or escalate.
 
