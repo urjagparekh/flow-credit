@@ -14,11 +14,11 @@ import type { Decision } from "@/lib/decision-types";
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "Credit Continuity Agent — Prototype" },
+      { title: "Flow Continuity Agent" },
       {
         name: "description",
         content:
-          "An AI agent that decides per-user how to handle credit overages on a metered generative-AI platform.",
+          "An AI agent for Runway commerce platform, that reasons through customer data and margins to identify grey zone users and provide per-user judgment instead of a hard credit stop for a better customer experience.",
       },
     ],
   }),
