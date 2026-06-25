@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Flow Continuity Agent — Runway Commerce Platform</title>
+<style>
+  :root {
+    --ink: #1c2230; --muted: #5b6675; --line: #e2e6ec;
+    --accent: #0f766e; --accent-soft: #ecfdf9; --head: #f4f6f8; --code-bg: #f1f3f6;
+  }
+  * { box-sizing: border-box; }
+  body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    color: var(--ink); line-height: 1.55; margin: 0; background: #fafbfc; }
+  .wrap { max-width: 800px; margin: 0 auto; padding: 44px 24px 72px; }
+  h1 { font-size: 1.7rem; margin: 0 0 4px; }
+  .deck { color: var(--muted); font-size: 0.98rem; margin: 0 0 20px; }
+  h2 { font-size: 1.04rem; margin: 30px 0 7px; color: var(--accent); }
+  p { font-size: 0.96rem; margin: 0 0 12px; }
+  ul { margin: 8px 0; padding-left: 20px; }
+  li { margin: 5px 0; font-size: 0.94rem; }
+  .note { background: var(--accent-soft); border: 1px solid #cdeee8; border-radius: 8px;
+    padding: 10px 14px; font-size: 0.86rem; color: var(--muted); margin: 12px 0; }
+  .flow { background: #fff; border: 1px solid var(--line); border-left: 3px solid var(--accent);
+    border-radius: 8px; padding: 12px 16px; margin: 10px 0; font-size: 0.95rem; }
+  table { border-collapse: collapse; width: 100%; margin: 10px 0; font-size: 0.9rem; }
+  th, td { text-align: left; padding: 9px 12px; border-bottom: 1px solid var(--line); vertical-align: top; }
+  th { background: var(--head); font-weight: 600; font-size: 0.82rem; }
+  tr:last-child td { border-bottom: none; }
+  td.lead { font-weight: 600; white-space: nowrap; }
+  code { background: var(--code-bg); padding: 1px 5px; border-radius: 4px; font-size: 0.84em; }
+  .faq p { margin: 0 0 4px; }
+  .faq .q { font-weight: 600; margin-top: 14px; }
+  .faq .a { color: var(--ink); }
+  .arch { margin: 14px 0; }
+  .arch-step { background: #fff; border: 1px solid var(--line); border-left: 4px solid var(--muted); border-radius: 10px; padding: 12px 16px; }
+  .arch-step.agent { border-left-color: var(--accent); }
+  .arch-step.out { border-left-color: var(--accent); background: var(--accent-soft); }
+  .arch-head { font-weight: 600; font-size: 0.96rem; display: flex; align-items: center; gap: 8px; }
+  .arch-num { display: inline-flex; align-items: center; justify-content: center; width: 22px; height: 22px;
+    flex: none; border-radius: 50%; background: var(--ink); color: #fff; font-size: 0.76rem; font-weight: 700; }
+  .arch-step.agent .arch-num, .arch-step.out .arch-num { background: var(--accent); }
+  .tagline { color: var(--muted); font-weight: 500; font-size: 0.8rem; }
+  .arch-sub { color: var(--muted); font-size: 0.88rem; margin-top: 4px; }
+  .arch-arrow { text-align: center; color: var(--muted); font-size: 1.05rem; margin: 5px 0; }
+  .arch-arrow .n { font-size: 0.76rem; }
+  .chips { display: flex; flex-wrap: wrap; gap: 6px; margin: 8px 0 4px; }
+  .chip { background: var(--head); border: 1px solid var(--line); border-radius: 999px; padding: 2px 10px;
+    font-size: 0.78rem; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
+  .toc { background: #fff; border: 1px solid var(--line); border-radius: 10px; padding: 14px 18px; margin: 16px 0; font-size: 0.86rem;
+    display: flex; flex-wrap: wrap; gap: 8px 18px; }
+  .toc a { color: var(--ink); text-decoration: none; white-space: nowrap; }
+  .toc a:hover { text-decoration: underline; }
+  footer { margin-top: 42px; color: var(--muted); font-size: 0.8rem; border-top: 1px solid var(--line); padding-top: 14px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <h1>Flow Continuity Agent — <a href="https://runwayml.com/" target="_blank" rel="noopener noreferrer" style="color: var(--accent); text-decoration: underline; text-underline-offset: 3px;">Runway</a> Commerce Platform</h1>
+  <p class="deck">An overview of the problem, the agent, and how to explore the demo.</p>
+
+  <div class="toc">
+    <a href="#problem">1. Problem</a><a href="#why">2. Why it matters</a><a href="#persona">3. Who struggles</a><a href="#value">4. How it helps</a><a href="#goal">5. Goal &amp; scaling</a><a href="#how">6. How it works</a><a href="#interact">7. How to interact</a><a href="#scenarios">8. Scenarios</a><a href="#arch">9. Architecture</a><a href="#math">10. The mechanics</a><a href="#changed">11. What changed</a>
+  </div>
+
+  <div class="note">A working prototype. All user data and credit figures are illustrative.</div>
+
+  <h2 id="problem">1. Problem</h2>
+  <p>Almost every AI product today — image, video, text, audio — is metered by credits. On the commerce side, these platforms sell subscriptions, and each subscription is capped at a fixed number of credits per cycle. So one problem is common to all of them: a user can run out of credits at any moment, depending on how much they use.</p>
+  <p>It's a new problem, created by the rise of these products — and it lands hardest on good, loyal users doing real work. When they're interrupted mid-task by credit exhaustion, the only experience on offer today is a cold stop: "pay" or "top up." This project makes that moment a smart, per-user decision instead of a blunt cutoff.</p>
+
+  <h2 id="why">2. Why it matters</h2>
+  <ul>
+    <li><strong>Customer churn — you break their flow at the worst moment.</strong> The wall lands when the user is deep in the work: high intent, high emotion, and often on a clock — a YouTuber publishing to catch peak engagement, a freelancer on a client deadline. Forcing them to stop and sort out billing right then is exactly when frustration peaks and good users walk away.</li>
+    <li><strong>One blunt rule for everyone — your best customers feel it most.</strong> The cutoff has no idea who's at the gate. It treats a loyal, three-year, always-paid subscriber exactly like a brand-new or fraudulent account — same cold wall, same friction. The experience never reflects the relationship you've earned, so your most valuable users get punished right alongside the bad actors.</li>
+    <li><strong>Lost revenue — a slammed door instead of an open one.</strong> At that moment a user's willingness to pay is at its peak; many would gladly top up to keep going. A hard "upgrade to continue using" or "credits used, come back later" leaves that money on the table instead of offering a smooth way forward — and the same blunt path that loses good sales also waves risky accounts straight through.</li>
+  </ul>
+
+  <h2 id="persona">3. Who struggles</h2>
+  <p><strong>Primary:</strong> solopreneurs, content creators, YouTubers, and freelancers who rely on these tools for time-sensitive, business-critical work — usually deep in a creative session when the credits run out.</p>
+  <p><strong>Secondary:</strong> B2B expansion for enterprises (future scope).</p>
+
+  <h2 id="value">4. How it helps</h2>
+  <ul>
+    <li>Keeps trusted users in flow instead of cutting them off — reducing churn at the highest-intent moment.</li>
+    <li>Makes the right call per user — continue, warn, offer to buy, or stop — rather than one wall for everyone.</li>
+    <li>Protects margin and stops risky accounts; it doesn't extend credit blindly.</li>
+    <li>Captures revenue from users who would happily keep paying.</li>
+    <li>Frees the support team from manual judgment calls, escalating only the genuinely hard cases.</li>
+  </ul>
+
+  <h2 id="goal">5. Goal &amp; where it scales</h2>
+  <p><strong>Goal:</strong> when a user is about to run out mid-generation, decide — in that moment, per user — the right way to handle it (keep creating, ask for payment, limit future use, or stop), and explain why.</p>
+  <p><strong>Where it scales:</strong> the same judgment extends naturally to B2B enterprise plans with shared credit pools and many seats — bringing context-aware overage decisions and fair-usage guardrails to teams.</p>
+
+  <h2 id="how">6. How it works</h2>
+  <div class="flow"><strong>Safety checks (rules)</strong> → <strong>Judgment (the agent)</strong> → <strong>Final cap check</strong> → <strong>Decision</strong></div>
+  <ul>
+    <li><strong>Safety checks first, in plain code:</strong> fraud, failed payments, consent, hard limits. Clear-cut cases are settled here.</li>
+    <li><strong>Judgment in the grey zone, by the agent:</strong> for everything else, it weighs the signals that matter — how valuable and trusted the user is, the size of the request, their payment history — and reasons through the trade-offs.</li>
+    <li><strong>Final check:</strong> the decision is clamped to the platform's limits before anything happens.</li>
+  </ul>
+  <p>The agent investigates only as much as each case needs — a simple case stays quick; a tricky one digs deeper.</p>
+
+  <h2 id="interact">7. How to interact</h2>
+  <ul>
+    <li>Pick a user scenario from the list below.</li>
+    <li>Press <strong>Generate</strong> — the user is about to run a job that costs more credits than they have left.</li>
+    <li>The agent responds with its decision, the reasons behind it, the alternatives it rejected, and the impact on the next bill.</li>
+    <li>A data view shows the underlying account details the agent reasoned over.</li>
+  </ul>
+
+  <h2 id="scenarios">8. Scenarios to play</h2>
+  <p>Each user is set up so a different factor decides the outcome.</p>
+  <table>
+    <thead><tr><th>#</th><th>User</th><th>Situation</th><th>What the agent does</th></tr></thead>
+    <tbody>
+      <tr><td class="lead">1</td><td class="lead">Maya</td><td>Loyal Pro subscriber, clean history, 35 credits short on a small job.</td><td>Grants the credits and lets her finish, billed next cycle.</td></tr>
+      <tr><td class="lead">2</td><td class="lead">Devin</td><td>Brand-new account, no payment history, 100 short on a large batch, hasn't agreed to pay-later.</td><td>Offers a one-click credit pack before continuing.</td></tr>
+      <tr><td class="lead">3</td><td class="lead">ghostpix</td><td>Repeated failed payments and a chargeback flag, 55 short.</td><td>Stops auto-extension; manual top-up only.</td></tr>
+      <tr><td class="lead">4</td><td class="lead">Alex</td><td>Loyal Pro subscriber but with a recent payment failure, 80 short on a large, unpredictable-cost job.</td><td>Completes this job, then asks him to confirm a payment method before the next one.</td></tr>
+      <tr><td class="lead">5</td><td class="lead">Studio Nine</td><td>High-value team account that trips a risk signal mid-job.</td><td>Escalates to human review and notifies the admin, rather than cold-blocking a valuable account.</td></tr>
+      <tr><td class="lead">6</td><td class="lead">Nadia</td><td>Loyal, high-value subscriber — but the request is huge (600 credits over).</td><td>Declines to front it and offers a purchase; the amount exceeds the safety caps, so loyalty alone doesn't override them.</td></tr>
+      <tr><td class="lead">7</td><td class="lead">Theo</td><td>Solid subscriber, 60 credits short on a normal job.</td><td>Grants it, but asks him to confirm the charge first because it crosses a dollar threshold.</td></tr>
+      <tr><td class="lead">8</td><td class="lead">Priya</td><td>Fine on every signal, but has already used most of her cycle's overage allowance.</td><td>Offers a purchase instead; the shared cycle limit is nearly used up.</td></tr>
+    </tbody>
+  </table>
+
+  <h2 id="arch">9. Architecture</h2>
+  <p class="sub">End-to-end flow. Deterministic rules (slate) guard the decision on both sides; the agent (teal) reasons only in the middle.</p>
+  <div style="background:#fff;border:1px solid var(--line);border-radius:10px;padding:16px;margin:12px 0;overflow-x:auto;">
+    <svg width="100%" viewBox="0 0 720 890" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" role="img" aria-label="Flowchart of the agent decision architecture">
+      <defs>
+        <marker id="ah" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+          <path d="M1 1 L9 5 L1 9" fill="none" stroke="#5b6675" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
+        </marker>
+      </defs>
+
+      <!-- arrows -->
+      <g fill="none" stroke="#5b6675" stroke-width="1.4">
+        <line x1="330" y1="72"  x2="330" y2="103" marker-end="url(#ah)"/>
+        <line x1="480" y1="150" x2="508" y2="150" marker-end="url(#ah)"/>
+        <line x1="330" y1="195" x2="330" y2="232" marker-end="url(#ah)"/>
+        <line x1="330" y1="284" x2="330" y2="313" marker-end="url(#ah)"/>
+        <line x1="180" y1="360" x2="133" y2="437" marker-end="url(#ah)"/>
+        <line x1="480" y1="360" x2="537" y2="437" marker-end="url(#ah)"/>
+        <line x1="130" y1="498" x2="270" y2="539" marker-end="url(#ah)"/>
+        <line x1="545" y1="498" x2="385" y2="539" marker-end="url(#ah)"/>
+        <line x1="330" y1="592" x2="330" y2="619" marker-end="url(#ah)"/>
+        <line x1="330" y1="686" x2="330" y2="713" marker-end="url(#ah)"/>
+        <line x1="330" y1="764" x2="330" y2="793" marker-end="url(#ah)"/>
+      </g>
+
+      <!-- branch labels -->
+      <text x="494" y="143" text-anchor="middle" font-size="9" fill="#5b6675">trips</text>
+      <text x="345" y="216" font-size="9" fill="#5b6675">clears</text>
+      <text x="66"  y="415" font-size="9" fill="#0f766e">small + trusted</text>
+      <text x="556" y="415" font-size="9" fill="#0f766e">large / borderline</text>
+
+      <!-- START -->
+      <rect x="210" y="20" width="240" height="52" rx="26" fill="#1c2230"/>
+      <text x="330" y="42" text-anchor="middle" font-size="12.5" font-weight="600" fill="#ffffff">Generation request</text>
+      <text x="330" y="58" text-anchor="middle" font-size="10.5" fill="#c9cfd8">needs more credits than balance</text>
+
+      <!-- GATE decision -->
+      <polygon points="330,105 480,150 330,195 180,150" fill="#ffffff" stroke="#5b6675" stroke-width="1.4"/>
+      <text x="330" y="146" text-anchor="middle" font-size="12" font-weight="600" fill="#1c2230">Safety gate tripped?</text>
+      <text x="330" y="162" text-anchor="middle" font-size="9.5" fill="#5b6675">fraud · payments · abuse · consent · caps</text>
+
+      <!-- GATE outcome (rules) -->
+      <rect x="510" y="113" width="190" height="74" rx="8" fill="#f4f6f8" stroke="#5b6675" stroke-width="1.2"/>
+      <text x="605" y="139" text-anchor="middle" font-size="10" font-weight="700" fill="#1c2230">BLOCK · OFFER_PURCHASE</text>
+      <text x="605" y="154" text-anchor="middle" font-size="10" font-weight="700" fill="#1c2230">· ESCALATE</text>
+      <text x="605" y="172" text-anchor="middle" font-size="9" fill="#5b6675">deterministic outcome — settled</text>
+
+      <!-- TIER 1 (agent) -->
+      <rect x="205" y="234" width="250" height="50" rx="8" fill="#ecfdf9" stroke="#0f766e" stroke-width="1.2"/>
+      <text x="330" y="256" text-anchor="middle" font-size="11.5" font-weight="600" fill="#1c2230">Agent · Tier 1</text>
+      <text x="330" y="272" text-anchor="middle" font-size="10" fill="#5b6675">read overage size — getLedger</text>
+
+      <!-- TIER decision (agent) -->
+      <polygon points="330,315 480,360 330,405 180,360" fill="#ffffff" stroke="#0f766e" stroke-width="1.4"/>
+      <text x="330" y="356" text-anchor="middle" font-size="12" font-weight="600" fill="#1c2230">Small overage &amp; trusted?</text>
+      <text x="330" y="372" text-anchor="middle" font-size="9.5" fill="#5b6675">≤ 50 credits · clean · tenured</text>
+
+      <!-- LAYER A (agent) -->
+      <rect x="30" y="438" width="200" height="60" rx="8" fill="#ecfdf9" stroke="#0f766e" stroke-width="1.2"/>
+      <text x="130" y="463" text-anchor="middle" font-size="11.5" font-weight="600" fill="#1c2230">Layer A</text>
+      <text x="130" y="480" text-anchor="middle" font-size="10" fill="#5b6675">decide in ~2 checks</text>
+
+      <!-- LAYER B (agent) -->
+      <rect x="430" y="438" width="230" height="60" rx="8" fill="#ecfdf9" stroke="#0f766e" stroke-width="1.2"/>
+      <text x="545" y="463" text-anchor="middle" font-size="11.5" font-weight="600" fill="#1c2230">Layer B (deeper)</text>
+      <text x="545" y="480" text-anchor="middle" font-size="10" fill="#5b6675">getLtv · getMargin · getUsage</text>
+
+      <!-- WEIGH (agent) -->
+      <rect x="185" y="540" width="290" height="52" rx="8" fill="#ecfdf9" stroke="#0f766e" stroke-width="1.2"/>
+      <text x="330" y="562" text-anchor="middle" font-size="11.5" font-weight="600" fill="#1c2230">Agent weighs the trade-offs</text>
+      <text x="330" y="578" text-anchor="middle" font-size="10" fill="#5b6675">value · risk · margin · usage</text>
+
+      <!-- ACTIONS (agent) -->
+      <rect x="160" y="620" width="340" height="66" rx="8" fill="#ecfdf9" stroke="#0f766e" stroke-width="1.2"/>
+      <text x="330" y="641" text-anchor="middle" font-size="10" fill="#5b6675">picks one action</text>
+      <text x="330" y="658" text-anchor="middle" font-size="11" font-weight="700" fill="#1c2230">AUTO_GRANT · WARN_AND_ALLOW</text>
+      <text x="330" y="675" text-anchor="middle" font-size="11" font-weight="700" fill="#1c2230">COMPLETE_ONLY · OFFER_PURCHASE</text>
+
+      <!-- VALIDATE (rules) -->
+      <rect x="190" y="714" width="280" height="50" rx="8" fill="#f4f6f8" stroke="#5b6675" stroke-width="1.2"/>
+      <text x="330" y="736" text-anchor="middle" font-size="11.5" font-weight="600" fill="#1c2230">Validate / clamp · rules</text>
+      <text x="330" y="752" text-anchor="middle" font-size="10" fill="#5b6675">enforce caps · confirm if &gt; $5</text>
+
+      <!-- END -->
+      <rect x="210" y="794" width="240" height="52" rx="26" fill="#1c2230"/>
+      <text x="330" y="816" text-anchor="middle" font-size="12.5" font-weight="600" fill="#ffffff">Decision shown to user</text>
+      <text x="330" y="832" text-anchor="middle" font-size="10.5" fill="#c9cfd8">action + reasoning + next-bill impact</text>
+
+      <!-- legend -->
+      <rect x="30"  y="862" width="13" height="13" rx="3" fill="#ecfdf9" stroke="#0f766e"/>
+      <text x="49"  y="872" font-size="10" fill="#5b6675">Agent (reasoning)</text>
+      <rect x="185" y="862" width="13" height="13" rx="3" fill="#f4f6f8" stroke="#5b6675"/>
+      <text x="204" y="872" font-size="10" fill="#5b6675">Rules (deterministic)</text>
+      <rect x="360" y="862" width="13" height="13" rx="3" fill="#1c2230"/>
+      <text x="379" y="872" font-size="10" fill="#5b6675">Start / end</text>
+    </svg>
+  </div>
+
+  <h2 id="math">10. The mechanics</h2>
+  <p>The key numbers the agent works with (all illustrative):</p>
+  <table>
+    <thead><tr><th>Item</th><th>Value</th></tr></thead>
+    <tbody>
+      <tr><td class="lead">Price per credit (charged)</td><td>$0.10</td></tr>
+      <tr><td class="lead">Cost per credit (to serve)</td><td>$0.04 &nbsp;→&nbsp; $0.06 margin</td></tr>
+      <tr><td class="lead">Continuity cap per cycle</td><td>Standard 50 · Pro 200 · Team 400 credits</td></tr>
+      <tr><td class="lead">Max single grant</td><td>150 credits</td></tr>
+      <tr><td class="lead">Confirm required above</td><td>$5 of grant value</td></tr>
+      <tr><td class="lead">Auto-block thresholds</td><td>fraud score ≥ 70, or ≥ 2 failed payments (90 days)</td></tr>
+    </tbody>
+  </table>
+  <p><strong>How they combine:</strong> the safety checks (fraud, failed payments, consent) run first. If none stop the request, the agent may grant up to <strong>the smaller of</strong> the overage, the remaining continuity cap, or 150 credits — and if the grant is worth more than $5, it asks for confirmation before charging.</p>
+
+  <h2 id="changed">11. What changed</h2>
+  <div class="flow">A hard, one-size-fits-all cutoff becomes a real-time, per-user judgment — the moment that used to push good customers away now keeps them creating, while still protecting the platform.</div>
+
+  <footer>Flow Continuity Agent — overview · illustrative values for the prototype.</footer>
+
+</div>
+</body>
+</html>
