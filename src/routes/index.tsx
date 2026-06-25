@@ -65,9 +65,18 @@ function Index() {
             Flow Continuity Agent
           </h1>
           <p className="mt-3 max-w-2xl text-muted-foreground">
-            An AI agent for Runway commerce platform, that reasons through customer
-            data and margins to identify grey zone users and provide per-user
-            judgment instead of a hard credit stop — explained.
+            An AI agent for{" "}
+            <a
+              href="https://runwayml.com/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="font-medium text-foreground underline underline-offset-2 transition-colors hover:text-primary"
+            >
+              Runway
+            </a>{" "}
+            commerce platform, that reasons through customer data and margins to
+            identify grey zone users and provide per-user judgment instead of a
+            hard credit stop — explained.
           </p>
         </header>
 
