@@ -62,12 +62,12 @@ function Index() {
             Prototype · illustrative data
           </div>
           <h1 className="mt-2 text-3xl font-semibold tracking-tight sm:text-4xl">
-            Credit Continuity Agent
+            Flow Continuity Agent
           </h1>
           <p className="mt-3 max-w-2xl text-muted-foreground">
-            Deterministic guardrails for fraud and revenue integrity. An AI agent for
-            the grey zone. Per-user judgment instead of a hard credit stop —
-            explained.
+            An AI agent for Runway commerce platform, that reasons through customer
+            data and margins to identify grey zone users and provide per-user
+            judgment instead of a hard credit stop — explained.
           </p>
         </header>
 
