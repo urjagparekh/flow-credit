@@ -35,16 +35,31 @@ Hits retention, trust, and margin at the same time, at a high-intent moment.
 
 This is about **judgment**, not a billion-dollar line item. The leverage is in getting the decision right when the user is most engaged.
 
-## What's Mocked vs. Real
+## What's Real vs. What's Mocked
 
-| Mocked (illustrative data) | Real (production logic) |
-|---|---|
-| All user data, LTV, credit numbers | The gates, the agent's reasoning, the decision logic |
+### Real (actually runs)
 
-**Cut on purpose** to keep scope tight:
-- Live exhaustion prediction
-- Separate risk subagent
-- Full team-admin UI
+- **The LLM call** — it hits `google/gemini-3.5-flash`. The reasoning and tool selection are live, not scripted.
+
+- **The safety gates** — fraud, failed-payment, abuse, consent, and cap-feasibility checks that deterministically settle clear cases before the agent. They return `BLOCK` or `ESCALATE` (high-LTV/team accounts that fail a gate are escalated to human review, not blocked).
+
+- **The agent** — a tool-calling model that investigates proportionally to the stakes, weighs the trade-offs, and picks one of four actions: `AUTO_GRANT`, `WARN_AND_ALLOW`, `COMPLETE_ONLY_LIMIT_FUTURE`, or `OFFER_PURCHASE` — with an explainable rationale and rejected alternatives. (`BLOCK`/`ESCALATE` are gate-only; the agent never blocks.)
+
+- **The decision pipeline** — gates → tiered investigation → action → clamp-to-caps → confirm-above-threshold.
+
+- **The reasoning UI** — decision card, rationale, and the live tool trace.
+
+### Mocked (simulated for the demo)
+
+- **Account data** — the 8 personas and their ledgers, payments, LTV, usage, and risk scores are hardcoded in `seed.json`; nothing persists across a refresh.
+
+- **The triggering job** — the "pending generation" that causes the overage is also hardcoded (`pending_jobs` in `seed.json`), not a real incoming request.
+
+- **The tools** — `getLedger`, `getAccount`, `getLtv`, etc. return canned values, not real backend queries.
+
+- **Money/credits** — grants, charges, and purchases don't move real funds; there's no billing or payment integration.
+
+- **Unit economics** — the $0.10 charge / $0.04 cost / margin figures are illustrative placeholders.
 
 ---
 
