@@ -74,7 +74,7 @@ function Index() {
         {/* Scenario picker */}
         <section className="mb-6">
           <div className="mb-3 text-xs uppercase tracking-wider text-muted-foreground">
-            Pick a scenario
+            Pick a persona
           </div>
           <ScenarioPicker
             selectedUserId={selectedUserId}
