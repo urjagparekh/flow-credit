@@ -4,6 +4,19 @@ A demoable prototype of an **agentic decision system** for a metered generative-
 
 Built on **TanStack Start** (React 19 + Vite 7) with the **AI SDK** + **Lovable AI Gateway** (`google/gemini-3.5-flash`).
 
+## Demo Scenarios
+
+| Persona | Key Signals | Expected Path | Outcome |
+|---|---|---|---|
+| **Maya** (u1) | Pro, 26mo, fraud 5, 0 failed, overage 35 | Gate passes → Tier 2 reasoning | `AUTO_GRANT` — small overage, trusted, margin positive |
+| **Devin** (u2) | Standard, 0mo, no consent, overage 100 | Gate: no-consent large overage | `OFFER_PURCHASE` — must buy credits |
+| **ghostpix** (u3) | Fraud 78, 3 failed, chargebacks | Gate: fraud / abuse | `BLOCK` — manual top-up only |
+| **Alex** (u4) | Pro, 14mo, 1 failed payment, overage 80 | Gate passes → Tier 3 reasoning | `COMPLETE_ONLY_LIMIT_FUTURE` — borderline signal, large overage |
+| **Studio Nine** (u5) | Team, fraud 72, high LTV | Gate: fraud score, but team + high LTV | `ESCALATE` + notify admin |
+| **Nadia** (u6) | Pro, 40mo, overage 600 | Gate passes → validate clamps | `OFFER_PURCHASE` — exceeds max single grant (150) |
+| **Theo** (u7) | Pro, 9mo, overage 60 | Gate passes → Tier 3 reasoning | `AUTO_GRANT` or `WARN_AND_ALLOW` — trusted, margin OK |
+| **Priya** (u8) | Standard, 16mo, overage 40, near cap | Gate passes → validate clamps | `OFFER_PURCHASE` — remaining cap too small |
+
 ---
 
 ## The Problem
