@@ -107,15 +107,23 @@ Everything else falls through to the reasoning agent.
 
 ### Stage 2 — Reasoning Agent (`agent.server.ts`)
 
-A single-loop AI SDK agent (`generateText` + tools) acting as the **orchestrator**. It is told the case has already cleared safety gates and must choose between `AUTO_GRANT`, `WARN_AND_ALLOW`, `COMPLETE_ONLY_LIMIT_FUTURE`, or `OFFER_PURCHASE`.
+A single-loop AI SDK agent (`generateText` + tools) acting as the **orchestrator**. The system prompt tells it the deterministic safety gates (fraud, abuse, no-consent large overage, hard caps) have already cleared this case — it only sees grey-zone judgment calls and must choose between:
 
-**Tiered investigation policy** baked into the system prompt — the agent only pays for the tool calls it needs:
+- **`AUTO_GRANT`** — trusted user, manageable overage, margin positive.
+- **`WARN_AND_ALLOW`** — same, but the `user_message` leads with a heads-up.
+- **`COMPLETE_ONLY_LIMIT_FUTURE`** — front credits for **this** job, require confirm/payment before the next one.
+- **`OFFER_PURCHASE`** — no fronting; show a credit-pack purchase.
 
-- **Tier 1** — always pull `getLedger` (confirm overage). Optionally `getAccount`.
-- **Tier 2** — small clean overage, trusted signal → decide in ~2 calls.
-- **Tier 3** — large overage or borderline signals → pull `getLtv` + `getMargin`, and `getUsage` if pattern matters.
+**Tiered investigation policy** baked into the system prompt — every tool call is framed as having real cost (external APIs / expensive queries), so the agent investigates proportionally to the stakes:
 
-**Loop control**: stops on `stepCountIs(8)` **or** `hasToolCall("submitDecision")`.
+- **Tier 1 (always)** — pull `getLedger` to confirm overage size. Optionally `getAccount` for plan / tenure.
+- **Tier 2 (small clean overage + trusted signal)** — decide in ~2 calls. Do **not** pull `getLtv` / `getUsage` / `getMargin` for a tiny grant on a clean account.
+- **Tier 3 (large overage OR borderline signal like a recent failed payment)** — pull `getLtv` and `getMargin` before any grant. Add `getUsage` if the usage pattern matters.
+- **Hard rule** — a grant must always fit remaining continuity cap and `max_single_grant`. If `getMargin` shows the grant breaks margin, prefer `COMPLETE_ONLY_LIMIT_FUTURE` or `OFFER_PURCHASE`.
+
+**`user_message` style** — warm, concise, transparent about next-bill impact.
+
+**Loop control**: stops on `stepCountIs(8)` **or** `hasToolCall("submitDecision")`. The agent is instructed not to keep investigating once it has enough evidence to answer.
 
 ### Tools
 
